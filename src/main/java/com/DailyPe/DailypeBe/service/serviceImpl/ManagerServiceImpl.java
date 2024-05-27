@@ -3,8 +3,8 @@ package com.DailyPe.DailypeBe.service.serviceImpl;
 
 import com.DailyPe.DailypeBe.entity.Manager;
 import com.DailyPe.DailypeBe.repo.ManagerRepo;
+import com.DailyPe.DailypeBe.service.ManagerService;
 import com.dailypebe.DailyPeBE.payload.ManagerDto;
-import com.dailypebe.DailyPeBE.service.ManagerService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,5 +32,10 @@ public class ManagerServiceImpl implements ManagerService {
         Manager createdManager = this.managerRepo.save(manager);
 
         return this.modelMapper.map(createdManager, ManagerDto.class);
+    }
+
+    @Override
+    public ManagerDto getManagerByUuid(String uuid) {
+        return null;
     }
 }

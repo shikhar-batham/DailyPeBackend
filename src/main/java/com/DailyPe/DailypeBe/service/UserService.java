@@ -19,4 +19,6 @@ public interface UserService {
     UserDto getUserByUserId(Integer userId);
 
     Boolean deleteUser(DeleteUserDto deleteUserDto);
+
+    String  updateUser(UserDto userDto,int userId);
 }

@@ -1,4 +1,4 @@
-package com.dailypebe.DailyPeBE.utility;
+package com.DailyPe.DailypeBe.utility;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,6 +26,8 @@ public class Utility {
     }
 
     public static boolean isValidPAN(String pan) {
+
+        pan = pan.toUpperCase();
 
         Pattern pattern = Pattern.compile(PAN_PATTERN);
 

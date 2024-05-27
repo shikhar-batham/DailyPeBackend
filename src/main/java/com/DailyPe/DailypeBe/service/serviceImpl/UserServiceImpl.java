@@ -1,13 +1,15 @@
 package com.DailyPe.DailypeBe.service.serviceImpl;
 
 
+import com.DailyPe.DailypeBe.entity.Manager;
 import com.DailyPe.DailypeBe.entity.User;
 import com.DailyPe.DailypeBe.exception.ResourceNotFoundException;
 import com.DailyPe.DailypeBe.payload.UserDto;
+import com.DailyPe.DailypeBe.repo.ManagerRepo;
 import com.DailyPe.DailypeBe.repo.UserRepo;
 import com.DailyPe.DailypeBe.service.UserService;
+import com.DailyPe.DailypeBe.utility.Utility;
 import com.dailypebe.DailyPeBE.payload.DeleteUserDto;
-import com.dailypebe.DailyPeBE.utility.Utility;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private ManagerRepo managerRepo;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -95,28 +100,92 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean deleteUser(DeleteUserDto deleteUserDto) {
 
-        String deleteByUUID = null;
-        String deleteByMobile = null;
+//        String deleteByUUID = null;
+//        String deleteByMobile = null;
 
         if (deleteUserDto.getMobileNumber() == null && deleteUserDto.getUuid() == null) return false;
 
-        if (deleteUserDto.getMobileNumber() == null || deleteUserDto.getMobileNumber().equals("")) {
-            deleteByUUID = deleteUserDto.getUuid();
-        } else {
-            deleteByMobile = deleteUserDto.getMobileNumber();
+//        if (deleteUserDto.getMobileNumber() == null || deleteUserDto.getMobileNumber().equals("")) {
+//            deleteByUUID = deleteUserDto.getUuid();
+//        } else {
+//            deleteByMobile = deleteUserDto.getMobileNumber();
+//        }
+
+        User user = null;
+
+        try {
+            user = this.userRepo.findUserByMobileNumber(deleteUserDto.getMobileNumber()).orElseThrow(() -> new ResourceNotFoundException("user", "mobileNumber", 0));
+        } catch (ResourceNotFoundException ignored) {
         }
 
-        if (deleteByUUID != null) {
-            User user = this.userRepo.findUserByUserUUID(deleteByUUID).orElseThrow(() -> new ResourceNotFoundException("user", "uuid", 0));
+        try {
+            user = this.userRepo.findUserByUserUUID(deleteUserDto.getUuid()).orElseThrow(() -> new ResourceNotFoundException("user", "mobileNumber", 0));
+        } catch (ResourceNotFoundException ignored) {
+        }
+
+        if (user != null) {
             this.userRepo.delete(user);
             return true;
-        } else if (deleteByMobile != null) {
-            User user = this.userRepo.findUserByMobileNumber(deleteByMobile).orElseThrow(() -> new ResourceNotFoundException("user", "MobileNumber", 0));
-            this.userRepo.delete(user);
-            return true;
-        } else return false;
+        }
+
+        return false;
+
+//        if (deleteByUUID != null) {
+//            User user = this.userRepo.findUserByUserUUID(deleteByUUID).orElseThrow(() -> new ResourceNotFoundException("user", "uuid", 0));
+//            this.userRepo.delete(user);
+//            return true;
+//        } else if (deleteByMobile != null) {
+//            User user = this.userRepo.findUserByMobileNumber(deleteByMobile).orElseThrow(() -> new ResourceNotFoundException("user", "MobileNumber", 0));
+//            this.userRepo.delete(user);
+//            return true;
+//        } else return false;
 
     }
 
+    @Override
+    public String updateUser(UserDto userDto, int userId) {
+
+        User fetchedUser = this.userRepo.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "user_id", userId));
+
+        if (fetchedUser.getManagerId() == null) {
+            fetchedUser.setManagerId(userDto.getManagerId());
+            Calendar calendar = Calendar.getInstance();
+            Date timeStamp = calendar.getTime();
+            fetchedUser.setUpdatedAt(timeStamp.toString());
+        }
+
+        if (!userDto.getManagerId().isEmpty()) {
+
+            if (userDto.getFullName() == null || userDto.getFullName().equals("") || userDto.getFullName().isEmpty())
+                return "Full Name must contain some value";
+            fetchedUser.setFullName(userDto.getFullName());
+
+            boolean res = Utility.validateMobileNumber(userDto.getMobileNumber());
+            if (!res) return "Invalid Mobile";
+
+            boolean validPAN = Utility.isValidPAN(userDto.getPanNumber());
+            if (!validPAN) return "Invalid PAN";
+            String validPANNumber = Utility.validateAndConvertPAN(userDto.getPanNumber());
+            fetchedUser.setPanNumber(validPANNumber);
+
+            Optional<User> userByMobileNumber = this.userRepo.findUserByMobileNumber(userDto.getMobileNumber());
+            if (userByMobileNumber.isPresent()) return "This Mobile Number already exist.";
+            fetchedUser.setMobileNumber(userDto.getMobileNumber());
+
+            Manager byManagerUuid = this.managerRepo.findByManagerUuid(userDto.getManagerId());
+            if (byManagerUuid != null)
+                fetchedUser.setManagerId(userDto.getManagerId());
+            else return "Can't find manager";
+
+            Calendar calendar = Calendar.getInstance();
+            Date timeStamp = calendar.getTime();
+            fetchedUser.setUpdatedAt(timeStamp.toString());
+        } else
+            return userDto.getFullName() + " " + userDto.getPanNumber() + " " + userDto.getMobileNumber() + " " + "These Keys  can be updated on individual basis only";
+
+        this.userRepo.save(fetchedUser);
+
+        return "Fields Updated successfully";
+    }
 
 }

@@ -1,7 +1,7 @@
-package com.dailypebe.DailyPeBE.controller;
+package com.DailyPe.DailypeBe.controller;
 
+import com.DailyPe.DailypeBe.service.ManagerService;
 import com.dailypebe.DailyPeBE.payload.ManagerDto;
-import com.dailypebe.DailyPeBE.service.ManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

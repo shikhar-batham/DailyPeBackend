@@ -69,4 +69,9 @@ public class UserController {
         return "Can't delete user";
     }
 
+    @PostMapping("/updateUser/{userId}")
+    public String updateUser(@RequestBody UserDto userDto, @PathVariable("userId") int userId) {
+
+        return this.userService.updateUser(userDto, userId);
+    }
 }
