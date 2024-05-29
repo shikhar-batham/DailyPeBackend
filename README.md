@@ -1,4 +1,4 @@
-First fo all create a Databse in PostgreSQL by the name dailyPeBe and run the project.
+First fo all create a Databse in PostgreSQL by the name dailyPeBe (in application.properties) file and run the project.
 
 Please find below curls for specific perpose 
 
